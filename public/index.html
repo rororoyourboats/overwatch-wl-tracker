@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Overwatch Ranked W/L Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fff8ee;
+      --card: #fffdf8;
+      --text: #1c1917;
+      --muted: #78716c;
+      --accent: #f97316;
+      --accent-2: #0ea5e9;
+      --ok: #16a34a;
+      --bad: #dc2626;
+      --line: #e7e5e4;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Space Grotesk", "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 5% 0%, #ffedd5 0%, rgba(255, 237, 213, 0) 40%),
+        radial-gradient(circle at 100% 100%, #dbeafe 0%, rgba(219, 234, 254, 0) 35%),
+        var(--bg);
+    }
+    .wrap {
+      max-width: 1040px;
+      margin: 32px auto;
+      padding: 0 16px;
+    }
+    .hero {
+      background: linear-gradient(120deg, #0f172a 0%, #1e293b 100%);
+      color: #fff;
+      border-radius: 18px;
+      padding: 18px;
+      margin-bottom: 14px;
+      box-shadow: 0 14px 30px rgba(15, 23, 42, 0.2);
+    }
+    h1 { margin: 0 0 8px; font-size: 28px; letter-spacing: 0.2px; }
+    .hero p { margin: 0; color: #cbd5e1; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    }
+    .k { color: var(--muted); font-size: 13px; }
+    .v { font-size: 24px; font-weight: 700; }
+    form {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    input, select, button {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 14px;
+      background: white;
+    }
+    button {
+      background: var(--accent);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: transform 120ms ease, filter 120ms ease;
+    }
+    button:hover {
+      filter: brightness(0.96);
+      transform: translateY(-1px);
+    }
+    button.secondary {
+      background: #ef4444;
+    }
+    .quick-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    button.win-btn { background: var(--ok); }
+    button.loss-btn { background: var(--bad); }
+    .status {
+      min-height: 20px;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .tables {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: 1fr 1fr;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      font-size: 14px;
+    }
+    th { background: #f8fafc; }
+    .pill {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      color: white;
+    }
+    .win { background: var(--ok); }
+    .loss { background: var(--bad); }
+    .section-title { margin: 0 0 8px; font-size: 18px; }
+    .table-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    @media (max-width: 760px) {
+      .grid { grid-template-columns: 1fr; }
+      .tables { grid-template-columns: 1fr; }
+      h1 { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <h1>Overwatch Competitive W/L Tracker</h1>
+      <p>Fast ranked logging with daily totals, overall ratio, and exact entry timestamps.</p>
+    </div>
+
+    <div class="grid">
+      <div class="card"><div class="k">Total Wins</div><div id="tWins" class="v">0</div></div>
+      <div class="card"><div class="k">Total Losses</div><div id="tLosses" class="v">0</div></div>
+      <div class="card"><div class="k">Overall Win Rate</div><div id="tRate" class="v">0%</div></div>
+    </div>
+
+    <div class="card" style="margin-bottom: 16px;">
+      <div class="quick-row">
+        <button type="button" id="quickWin" class="win-btn">+ Win Today</button>
+        <button type="button" id="quickLoss" class="loss-btn">+ Loss Today</button>
+      </div>
+      <form id="matchForm">
+        <input type="date" id="date" required />
+        <select id="result" required>
+          <option value="win">Win</option>
+          <option value="loss">Loss</option>
+        </select>
+        <button type="submit">Add Match</button>
+      </form>
+      <div id="status" class="status"></div>
+      <div class="k">Tip: add one entry per ranked game.</div>
+    </div>
+
+    <div class="tables">
+      <div class="table-wrap">
+        <h2 class="section-title">Daily Summary</h2>
+        <table>
+          <thead>
+            <tr><th>Date</th><th>Wins</th><th>Losses</th><th>Games</th><th>Win Rate</th></tr>
+          </thead>
+          <tbody id="dailyBody"></tbody>
+        </table>
+      </div>
+
+      <div class="table-wrap">
+        <h2 class="section-title">Match Log</h2>
+        <table>
+          <thead>
+            <tr><th>Date</th><th>Result</th><th>Entered At</th><th>Action</th></tr>
+          </thead>
+          <tbody id="logBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const tWins = document.getElementById('tWins');
+    const tLosses = document.getElementById('tLosses');
+    const tRate = document.getElementById('tRate');
+    const dailyBody = document.getElementById('dailyBody');
+    const logBody = document.getElementById('logBody');
+    const matchForm = document.getElementById('matchForm');
+    const dateInput = document.getElementById('date');
+    const resultInput = document.getElementById('result');
+    const quickWin = document.getElementById('quickWin');
+    const quickLoss = document.getElementById('quickLoss');
+    const status = document.getElementById('status');
+
+    dateInput.valueAsDate = new Date();
+
+    function pct(v) {
+      return (v * 100).toFixed(1) + '%';
+    }
+
+    function localTime(iso) {
+      if (!iso) return '-';
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return '-';
+      return d.toLocaleString();
+    }
+
+    function todayStr() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    async function addMatch(date, result) {
+      const res = await fetch('/api/matches', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date, result })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Failed to add match' }));
+        throw new Error(err.error || 'Failed to add match');
+      }
+    }
+
+    async function load() {
+      const [summaryRes, matchesRes] = await Promise.all([
+        fetch('/api/summary'),
+        fetch('/api/matches')
+      ]);
+      const summary = await summaryRes.json();
+      const matches = await matchesRes.json();
+
+      tWins.textContent = summary.totals.wins;
+      tLosses.textContent = summary.totals.losses;
+      tRate.textContent = pct(summary.totals.ratio || 0);
+
+      dailyBody.innerHTML = '';
+      for (const d of [...summary.daily].reverse()) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${d.date}</td><td>${d.wins}</td><td>${d.losses}</td><td>${d.games}</td><td>${pct(d.ratio)}</td>`;
+        dailyBody.appendChild(tr);
+      }
+
+      logBody.innerHTML = '';
+      for (const m of [...matches].reverse()) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${m.date}</td>
+          <td><span class="pill ${m.result}">${m.result.toUpperCase()}</span></td>
+          <td>${localTime(m.createdAt)}</td>
+          <td><button class="secondary" data-id="${m.id}">Delete</button></td>
+        `;
+        logBody.appendChild(tr);
+      }
+
+      for (const btn of logBody.querySelectorAll('button[data-id]')) {
+        btn.addEventListener('click', async () => {
+          await fetch('/api/matches/' + btn.dataset.id, { method: 'DELETE' });
+          await load();
+        });
+      }
+    }
+
+    matchForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        await addMatch(dateInput.value, resultInput.value);
+        status.textContent = 'Added match.';
+        await load();
+      } catch (err) {
+        alert(err.message || 'Failed to add match');
+      }
+    });
+
+    quickWin.addEventListener('click', async () => {
+      try {
+        await addMatch(todayStr(), 'win');
+        status.textContent = 'Added WIN for today.';
+        await load();
+      } catch (err) {
+        alert(err.message || 'Failed to add match');
+      }
+    });
+
+    quickLoss.addEventListener('click', async () => {
+      try {
+        await addMatch(todayStr(), 'loss');
+        status.textContent = 'Added LOSS for today.';
+        await load();
+      } catch (err) {
+        alert(err.message || 'Failed to add match');
+      }
+    });
+
+    load();
+  </script>
+</body>
+</html>
