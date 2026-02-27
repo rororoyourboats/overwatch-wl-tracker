@@ -31,6 +31,17 @@ function saveMatches(matches) {
   fs.writeFileSync(dataFile, JSON.stringify(matches, null, 2), "utf8");
 }
 
+function isValidMatch(m) {
+  return (
+    m &&
+    typeof m === "object" &&
+    typeof m.id === "string" &&
+    /^\d{4}-\d{2}-\d{2}$/.test(m.date) &&
+    (m.result === "win" || m.result === "loss") &&
+    typeof m.createdAt === "string"
+  );
+}
+
 function summarize(matches) {
   let totalWins = 0;
   let totalLosses = 0;
@@ -77,6 +88,11 @@ app.get("/api/matches", (req, res) => {
   res.json(matches);
 });
 
+app.get("/api/backup", (req, res) => {
+  const matches = loadMatches();
+  res.json({ exportedAt: new Date().toISOString(), matches });
+});
+
 app.post("/api/matches", (req, res) => {
   const { date, result } = req.body;
   if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
@@ -90,6 +106,19 @@ app.post("/api/matches", (req, res) => {
   matches.push({ id: randomUUID(), date, result, createdAt: new Date().toISOString() });
   saveMatches(matches);
   res.status(201).json({ ok: true });
+});
+
+app.post("/api/matches/replace", (req, res) => {
+  const { matches } = req.body;
+  if (!Array.isArray(matches)) {
+    return res.status(400).json({ error: "matches must be an array" });
+  }
+  if (!matches.every(isValidMatch)) {
+    return res.status(400).json({ error: "Invalid match object(s) in payload" });
+  }
+
+  saveMatches(matches);
+  res.json({ ok: true, count: matches.length });
 });
 
 app.delete("/api/matches/:id", (req, res) => {
