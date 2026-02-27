@@ -6,159 +6,309 @@
   <title>Overwatch Ranked W/L Tracker</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #fff8ee;
-      --card: #fffdf8;
-      --text: #1c1917;
-      --muted: #78716c;
-      --accent: #f97316;
-      --accent-2: #0ea5e9;
-      --ok: #16a34a;
-      --bad: #dc2626;
-      --line: #e7e5e4;
+      --bg: #090d18;
+      --bg-soft: #10172a;
+      --card: #121b31;
+      --card-2: #0f1727;
+      --text: #e6edf7;
+      --muted: #9ab0d1;
+      --line: #24314e;
+      --accent: #ff7a18;
+      --accent-2: #00c8ff;
+      --ok: #22c55e;
+      --bad: #ef4444;
+      --shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
     }
+
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
-      font-family: "Space Grotesk", "Segoe UI", sans-serif;
       color: var(--text);
+      font-family: "Rajdhani", "Segoe UI", sans-serif;
       background:
-        radial-gradient(circle at 5% 0%, #ffedd5 0%, rgba(255, 237, 213, 0) 40%),
-        radial-gradient(circle at 100% 100%, #dbeafe 0%, rgba(219, 234, 254, 0) 35%),
-        var(--bg);
+        radial-gradient(circle at 12% -10%, rgba(255, 122, 24, 0.26), rgba(255, 122, 24, 0) 34%),
+        radial-gradient(circle at 105% 95%, rgba(0, 200, 255, 0.22), rgba(0, 200, 255, 0) 36%),
+        linear-gradient(180deg, #080c17 0%, var(--bg) 48%, #070b15 100%);
+      min-height: 100vh;
     }
+
     .wrap {
-      max-width: 1040px;
-      margin: 32px auto;
+      max-width: 1120px;
+      margin: 24px auto 40px;
       padding: 0 16px;
     }
+
     .hero {
-      background: linear-gradient(120deg, #0f172a 0%, #1e293b 100%);
-      color: #fff;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #2b3a5d;
       border-radius: 18px;
-      padding: 18px;
-      margin-bottom: 14px;
-      box-shadow: 0 14px 30px rgba(15, 23, 42, 0.2);
+      padding: 22px;
+      margin-bottom: 16px;
+      background: linear-gradient(140deg, #0d1528 0%, #18233d 55%, #111a31 100%);
+      box-shadow: var(--shadow);
+      animation: enter 360ms ease;
     }
-    h1 { margin: 0 0 8px; font-size: 28px; letter-spacing: 0.2px; }
-    .hero p { margin: 0; color: #cbd5e1; }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -60px;
+      top: -60px;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0, 200, 255, 0.28) 0%, rgba(0, 200, 255, 0) 65%);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-family: "Orbitron", sans-serif;
+      font-size: 30px;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+    }
+
+    .hero p {
+      margin: 0;
+      color: #b8c8e3;
+      font-size: 17px;
+    }
+
+    .tagline {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px rgba(255, 122, 24, 0.8);
+    }
+
     .grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 12px;
       margin-bottom: 16px;
+      animation: enter 460ms ease;
     }
+
     .card {
-      background: var(--card);
       border: 1px solid var(--line);
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 14px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+      background: linear-gradient(180deg, #121d34 0%, #10182c 100%);
+      box-shadow: var(--shadow);
     }
-    .k { color: var(--muted); font-size: 13px; }
-    .v { font-size: 24px; font-weight: 700; }
-    form {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: center;
-      margin-bottom: 18px;
+
+    .k {
+      color: var(--muted);
+      font-size: 13px;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
     }
-    input, select, button {
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 10px 12px;
-      font-size: 14px;
-      background: white;
+
+    .v {
+      margin-top: 2px;
+      font-family: "Orbitron", sans-serif;
+      font-size: 30px;
+      font-weight: 700;
     }
-    button {
-      background: var(--accent);
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-      transition: transform 120ms ease, filter 120ms ease;
+
+    .v.win { color: #7cf7a7; }
+    .v.loss { color: #ff8e8e; }
+    .v.rate { color: #8ae5ff; }
+
+    .entry-card {
+      margin-bottom: 16px;
+      animation: enter 520ms ease;
     }
-    button:hover {
-      filter: brightness(0.96);
-      transform: translateY(-1px);
-    }
-    button.secondary {
-      background: #ef4444;
-    }
+
     .quick-row {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
       margin-bottom: 12px;
     }
-    button.win-btn { background: var(--ok); }
-    button.loss-btn { background: var(--bad); }
-    .status {
-      min-height: 20px;
-      margin-top: 6px;
-      color: var(--muted);
+
+    form {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    input, select, button {
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 15px;
+      font-family: "Rajdhani", sans-serif;
+      border: 1px solid var(--line);
+      color: var(--text);
+      background: #111a30;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent-2);
+      box-shadow: 0 0 0 2px rgba(0, 200, 255, 0.2);
+    }
+
+    button {
+      border: none;
+      cursor: pointer;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      transition: transform 120ms ease, filter 120ms ease;
+      background: linear-gradient(180deg, #ff8d36 0%, #ff7a18 100%);
+      color: #1d0f04;
+    }
+
+    button:hover {
+      filter: brightness(1.03);
+      transform: translateY(-1px);
+    }
+
+    button:active { transform: translateY(0); }
+
+    button.win-btn {
+      background: linear-gradient(180deg, #34d870 0%, #22c55e 100%);
+      color: #05250f;
+    }
+
+    button.loss-btn {
+      background: linear-gradient(180deg, #ff6b6b 0%, #ef4444 100%);
+      color: #2f0707;
+    }
+
+    button.secondary {
+      background: linear-gradient(180deg, #ff7a7a 0%, #ef4444 100%);
+      color: #300505;
+      padding: 7px 10px;
       font-size: 13px;
     }
+
+    .status {
+      min-height: 20px;
+      margin-top: 4px;
+      color: var(--accent-2);
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .tip {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
     .tables {
       display: grid;
       gap: 16px;
       grid-template-columns: 1fr 1fr;
+      animation: enter 620ms ease;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      overflow: hidden;
-    }
-    th, td {
-      padding: 10px;
-      border-bottom: 1px solid var(--line);
-      text-align: left;
-      font-size: 14px;
-    }
-    th { background: #f8fafc; }
-    .pill {
-      display: inline-block;
-      padding: 4px 8px;
-      border-radius: 999px;
-      font-weight: 700;
-      font-size: 12px;
-      color: white;
-    }
-    .win { background: var(--ok); }
-    .loss { background: var(--bad); }
-    .section-title { margin: 0 0 8px; font-size: 18px; }
+
     .table-wrap {
       display: flex;
       flex-direction: column;
       gap: 8px;
     }
-    @media (max-width: 760px) {
+
+    .section-title {
+      margin: 0;
+      font-family: "Orbitron", sans-serif;
+      font-size: 18px;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      background: linear-gradient(180deg, #10182d 0%, #0f1729 100%);
+      box-shadow: var(--shadow);
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #1e2a44;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      background: #0d1529;
+      color: #b8cae8;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      font-size: 12px;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 4px 9px;
+      border-radius: 999px;
+      font-family: "Orbitron", sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.4px;
+      color: #061018;
+      font-weight: 700;
+    }
+
+    .win { background: #67e8a7; }
+    .loss { background: #fca5a5; }
+
+    @keyframes enter {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 860px) {
+      h1 { font-size: 24px; }
+      .hero p { font-size: 15px; }
       .grid { grid-template-columns: 1fr; }
       .tables { grid-template-columns: 1fr; }
-      h1 { font-size: 24px; }
+      .v { font-size: 26px; }
     }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="hero">
-      <h1>Overwatch Competitive W/L Tracker</h1>
-      <p>Fast ranked logging with daily totals, overall ratio, and exact entry timestamps.</p>
+      <h1>Overwatch Ranked Arena Tracker</h1>
+      <p>Track competitive wins and losses with daily splits, total ratio, and exact match entry times.</p>
+      <div class="tagline"><span class="dot"></span> Session Ready</div>
     </div>
 
     <div class="grid">
-      <div class="card"><div class="k">Total Wins</div><div id="tWins" class="v">0</div></div>
-      <div class="card"><div class="k">Total Losses</div><div id="tLosses" class="v">0</div></div>
-      <div class="card"><div class="k">Overall Win Rate</div><div id="tRate" class="v">0%</div></div>
+      <div class="card"><div class="k">Total Wins</div><div id="tWins" class="v win">0</div></div>
+      <div class="card"><div class="k">Total Losses</div><div id="tLosses" class="v loss">0</div></div>
+      <div class="card"><div class="k">Overall Win Rate</div><div id="tRate" class="v rate">0%</div></div>
     </div>
 
-    <div class="card" style="margin-bottom: 16px;">
+    <div class="card entry-card">
       <div class="quick-row">
         <button type="button" id="quickWin" class="win-btn">+ Win Today</button>
         <button type="button" id="quickLoss" class="loss-btn">+ Loss Today</button>
@@ -172,7 +322,7 @@
         <button type="submit">Add Match</button>
       </form>
       <div id="status" class="status"></div>
-      <div class="k">Tip: add one entry per ranked game.</div>
+      <div class="tip">Tip: Add one entry right after every ranked match for accurate daily tracking.</div>
     </div>
 
     <div class="tables">
