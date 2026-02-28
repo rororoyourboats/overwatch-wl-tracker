@@ -116,14 +116,13 @@
 
     .entry-card { margin-bottom: 16px; }
 
-    .quick-row, .backup-row {
+    .quick-row {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
     }
 
     .quick-row { margin-bottom: 10px; }
-    .backup-row { margin-top: 10px; }
 
     form {
       display: flex;
@@ -176,12 +175,6 @@
       color: #3a0808;
       font-size: 13px;
       padding: 7px 10px;
-    }
-
-    button.neutral-btn {
-      background: linear-gradient(180deg, #304670 0%, #27395d 100%);
-      color: #d9e8ff;
-      border: 1px solid #3d537f;
     }
 
     .status {
@@ -270,7 +263,7 @@
   <div class="wrap">
     <div class="hero">
       <h1>Overwatch Ranked Tracker</h1>
-      <p class="sub">Clean competitive match logging with daily split, total W/L, and reliable backup tools.</p>
+      <p class="sub">Clean competitive match logging with daily split, total W/L, and New York time consistency.</p>
       <div class="timezone-chip">Timezone Locked: America/New_York (ET)</div>
     </div>
 
@@ -295,12 +288,6 @@
       </form>
       <div id="status" class="status"></div>
       <div class="tip">All quick-add dates and displayed times use America/New_York.</div>
-      <div class="backup-row">
-        <button type="button" id="exportBackup" class="neutral-btn">Export Backup</button>
-        <button type="button" id="importBackup" class="neutral-btn">Import Backup File</button>
-        <button type="button" id="restoreLocal" class="neutral-btn">Restore Browser Backup</button>
-        <input type="file" id="backupFile" accept=".json,application/json" hidden />
-      </div>
     </div>
 
     <div class="tables">
@@ -339,11 +326,6 @@
     const quickWin = document.getElementById('quickWin');
     const quickLoss = document.getElementById('quickLoss');
     const status = document.getElementById('status');
-    const exportBackupBtn = document.getElementById('exportBackup');
-    const importBackupBtn = document.getElementById('importBackup');
-    const restoreLocalBtn = document.getElementById('restoreLocal');
-    const backupFileInput = document.getElementById('backupFile');
-    const LOCAL_BACKUP_KEY = 'ow_tracker_matches_backup_v1';
 
     dateInput.value = todayStrET();
 
@@ -395,36 +377,6 @@
       }
     }
 
-    async function replaceMatches(matches) {
-      const res = await fetch('/api/matches/replace', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ matches })
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: 'Failed to restore matches' }));
-        throw new Error(err.error || 'Failed to restore matches');
-      }
-    }
-
-    function saveLocalBackup(matches) {
-      try {
-        localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(matches));
-      } catch {
-      }
-    }
-
-    function getLocalBackup() {
-      try {
-        const raw = localStorage.getItem(LOCAL_BACKUP_KEY);
-        if (!raw) return [];
-        const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) ? parsed : [];
-      } catch {
-        return [];
-      }
-    }
-
     async function load() {
       const [summaryRes, matchesRes] = await Promise.all([
         fetch('/api/summary'),
@@ -432,16 +384,10 @@
       ]);
       const summary = await summaryRes.json();
       const matches = await matchesRes.json();
-      saveLocalBackup(matches);
 
       tWins.textContent = summary.totals.wins;
       tLosses.textContent = summary.totals.losses;
       tRate.textContent = pct(summary.totals.ratio || 0);
-
-      const browserBackup = getLocalBackup();
-      if (matches.length === 0 && browserBackup.length > 0) {
-        status.textContent = `Server empty. Browser backup has ${browserBackup.length} match(es) ready.`;
-      }
 
       dailyBody.innerHTML = '';
       for (const d of [...summary.daily].reverse()) {
@@ -498,62 +444,6 @@
         await load();
       } catch (err) {
         alert(err.message || 'Failed to add match');
-      }
-    });
-
-    exportBackupBtn.addEventListener('click', async () => {
-      try {
-        const res = await fetch('/api/backup');
-        const payload = await res.json();
-        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `ow-tracker-backup-${todayStrET()}.json`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-        status.textContent = 'Backup exported.';
-      } catch {
-        alert('Failed to export backup');
-      }
-    });
-
-    importBackupBtn.addEventListener('click', () => {
-      backupFileInput.value = '';
-      backupFileInput.click();
-    });
-
-    backupFileInput.addEventListener('change', async () => {
-      const file = backupFileInput.files?.[0];
-      if (!file) return;
-      try {
-        const text = await file.text();
-        const payload = JSON.parse(text);
-        const matches = Array.isArray(payload) ? payload : payload.matches;
-        if (!Array.isArray(matches)) throw new Error('Invalid backup format');
-        await replaceMatches(matches);
-        status.textContent = `Imported ${matches.length} match(es) from file.`;
-        await load();
-      } catch (err) {
-        alert(err.message || 'Failed to import backup');
-      }
-    });
-
-    restoreLocalBtn.addEventListener('click', async () => {
-      const matches = getLocalBackup();
-      if (matches.length === 0) {
-        alert('No browser backup found.');
-        return;
-      }
-      if (!confirm(`Restore ${matches.length} local match(es) to server? This replaces server data.`)) return;
-      try {
-        await replaceMatches(matches);
-        status.textContent = `Restored ${matches.length} match(es) from browser backup.`;
-        await load();
-      } catch (err) {
-        alert(err.message || 'Failed to restore browser backup');
       }
     });
 
